@@ -1,14 +1,14 @@
 # srec2bin_py
 ## Motorola S-Record to Binary File Converter (Python 3)
 
-by Oliver Thamm - Elektronikladen Microcomputer<br>
+by Oliver Thamm - [Elektronikladen Microcomputer](https://elmicro.com)<br>
 https://github.com/elmicro/srec2bin_py
 
 ### Description
 This utility converts binary data from Motorola S-Record file format [1] to raw binary.
 
 ### Usage
-Start the script with option -h to display the help screen:
+Start the script with option -h to display help screen and usage description:
 ```
 python srec2bin.py -h
 ```
