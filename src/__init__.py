@@ -1,0 +1,6 @@
+__version__ = '1.0'
+__title__ = 'srec2bin'
+__description__ = 'This utility converts binary data from Motorola S-Record file format [1] to raw binary.'
+__uri__ = 'https://github.com/mrbell321/srec2bin_py'
+__doc__ = __description__ + ' <' + __uri__ + '>'
+__license__ = 'MIT'
