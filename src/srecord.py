@@ -27,15 +27,40 @@ class Purpose(Enum):
 
 
 class Type(Enum):
-    S0 = Purpose.Header
-    S1 = Purpose.Data
-    S2 = Purpose.Data
-    S3 = Purpose.Data
-    S5 = Purpose.Count
-    S6 = Purpose.Count
-    S7 = Purpose.StartAddress
-    S8 = Purpose.StartAddress
-    S9 = Purpose.StartAddress
+    S0 = 0
+    S1 = 1
+    S2 = 2
+    S3 = 3
+    S5 = 5
+    S6 = 6
+    S7 = 7
+    S8 = 8
+    S9 = 9
+
+
+TypePurpose = {
+    Type.S0: Purpose.Header,
+    Type.S1: Purpose.Data,
+    Type.S2: Purpose.Data,
+    Type.S3: Purpose.Data,
+    Type.S5: Purpose.Count,
+    Type.S6: Purpose.Count,
+    Type.S7: Purpose.StartAddress,
+    Type.S8: Purpose.StartAddress,
+    Type.S9: Purpose.StartAddress,
+}
+
+TypeAddressSize = {
+    Type.S0: 2,
+    Type.S1: 2,
+    Type.S2: 3,
+    Type.S3: 4,
+    Type.S5: 2,
+    Type.S6: 3,
+    Type.S7: 4,
+    Type.S8: 3,
+    Type.S9: 2
+}
 
 
 class SRecord:
@@ -51,18 +76,6 @@ class SRecord:
     address and data fields
     """
 
-    address_sizes = {
-        Type.S0: 2,
-        Type.S1: 2,
-        Type.S2: 3,
-        Type.S3: 4,
-        Type.S5: 2,
-        Type.S6: 3,
-        Type.S7: 4,
-        Type.S8: 3,
-        Type.S9: 2
-    }
-
     def __init__(self, source: AnyStr):
         self.type: Type = None
         self.byte_count: int = 0
@@ -72,8 +85,8 @@ class SRecord:
         self.__process(source)
 
     def __repr__(self):
-        address_formatter = "{{:0{}}}".format(self.address_sizes[self.type] * 2)
-        formatter = "{}{:02x}" + address_formatter + "{}{:02X}"
+        address_formatter = "{{:0{}X}}".format(self.address_length * 2)
+        formatter = "{} {:02x} " + address_formatter + " {} {:02X}"
         return formatter.format(self.type.name, self.byte_count, self.address, self.data.hex().upper(), self.checksum)
 
     def __process(self, source: AnyStr):
@@ -86,7 +99,6 @@ class SRecord:
         source = source.rstrip()
         # gracefully ignore an empty line
         if len(source) == 0:
-            log.debug("Empty line")
             return
 
         assert 2 < len(source), ParseException("Truncated S-record: " + source)
@@ -103,9 +115,8 @@ class SRecord:
                     len(source[4:]) >> 1,
                     self.byte_count))
 
-            address_length = self.address_sizes[self.type]
-            self.address = int(source[4:4 + (address_length << 1)], 16)
-            self.data = bytes.fromhex(source[4 + (address_length << 1):2 + (self.byte_count << 1)])
+            self.address = int(source[4:4 + (self.address_length << 1)], 16)
+            self.data = bytes.fromhex(source[4 + (self.address_length << 1):2 + (self.byte_count << 1)])
             self.checksum = int(source[-2:], 16)
         except Exception as e:
             raise ParseException("Invalid characters in S-record") from e
@@ -113,5 +124,13 @@ class SRecord:
         calculated_checksum = (sum(int(source[i:i + 2], 16) for i in range(2, len(source) - 2, 2)) & 0xFF) ^ 0xFF
         assert self.checksum == calculated_checksum, \
             ParseException("Incorrect checksum: {} != {}".format(self.checksum, calculated_checksum))
+
+    @property
+    def address_length(self):
+        return TypeAddressSize[self.type]
+
+    @property
+    def purpose(self):
+        return TypePurpose[self.type]
 
 # -----------------------------------------------------------------------------
