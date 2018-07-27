@@ -1,5 +1,5 @@
 import logging
-from typing import Generator, Iterable, Optional
+from typing import Generator, Iterable, Tuple, Optional
 
 from srecord import SRecord, Purpose
 
@@ -19,7 +19,35 @@ def load(filename: str):
     return srecords
 
 
-def to_binary(srecords: Iterable[SRecord], page_size: Optional[int] = None) -> Generator[bytearray, None, None]:
+def to_image(srecords: Iterable[SRecord], fill_byte: bytes = b'\xff', offset: int = 0) -> Tuple[bytearray, int]:
+    log.debug("Converting SRecords to binary, fill: 0x{}, offset: 0x{:x}".format(fill_byte.hex(), offset))
+
+    target_memory = bytearray(fill_byte * 0x100000)
+    target_memmap = bytearray(0x100000 * b'\xff')
+    byte_cnt = 0
+    high_address = 0
+    for srecord in srecords:
+        if srecord.purpose == Purpose.Data:
+            addr = srecord.address - offset
+            log.debug("Processing SRecord: {} @ 0x{:08x}".format(srecord, addr))
+            for b in srecord.data:
+                if target_memmap[addr] == 0:
+                    log.debug("Non critical error: duplicate access to address: 0x{:04X}; {}".format(addr, srecord))
+                else:
+                    byte_cnt += 1
+                target_memmap[addr] = 0
+                target_memory[addr] = b
+                addr += 1
+            if addr > high_address:
+                high_address = addr
+        else:
+            log.debug("Skipping non-data line")
+
+    return target_memory[:high_address], byte_cnt
+
+
+def to_pages(srecords: Iterable[SRecord], page_size: Optional[int] = None) -> Generator[
+    Tuple[int, bytearray], None, None]:
     page_size = page_size or MAX_PAGE_SIZE
     log.debug("Converting SRecords to binary, page_size: 0x{:x}".format(page_size))
 
