@@ -1,10 +1,12 @@
 import logging
-from typing import Tuple, Iterable
+from typing import Generator, Iterable, Optional
 
 from srecord import SRecord, Purpose
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+
+MAX_PAGE_SIZE = 0x100000
 
 
 def load(filename: str):
@@ -17,28 +19,33 @@ def load(filename: str):
     return srecords
 
 
-def to_binary(srecords: Iterable[SRecord], fill_byte: int = 0xff, offset: int = 0) -> Tuple[bytearray, int]:
-    log.debug("Converting SRecords to binary, fill: 0x{:X}, offset: 0x{:x}".format(fill_byte, offset))
+def to_binary(srecords: Iterable[SRecord], page_size: Optional[int] = None) -> Generator[bytearray, None, None]:
+    page_size = page_size or MAX_PAGE_SIZE
+    log.debug("Converting SRecords to binary, page_size: 0x{:x}".format(page_size))
 
-    target_memory = bytearray(0x100000 * fill_byte)
-    target_memmap = bytearray(0x100000 * b'\xff')
-    byte_cnt = 0
-    high_address = 0
+    page = bytearray()
+
+    page_address = -1
     for srecord in srecords:
-        if srecord.type.value == Purpose.Data:
-            addr = srecord.address - offset
-            log.debug("Processing SRecord: {} @ 0x{}".format(srecord, addr))
-            for b in srecord.data:
-                if target_memmap[addr] != 0:
-                    target_memmap[addr] = 0
-                    target_memory[addr] = b
-                    byte_cnt += 1
-                else:
-                    log.error("Non critical error: duplicate access to address: 0x{:04X}; {}".format(addr, srecord))
-                addr += 1
-            if addr > high_address:
-                high_address = addr
-        else:
-            log.debug("Skipping non-data line")
+        if srecord.purpose == Purpose.Data:
+            log.debug("Processing SRecord: {}".format(srecord))
+            if page_address < 0:
+                page_address = srecord.address
 
-    return target_memory[:high_address], byte_cnt
+            elif srecord.address < page_address or srecord.address >= (page_address + page_size):
+                log.debug("Switching from page at 0x{:08X} to 0x{:08X}".format(page_address, srecord.address))
+                yield page_address, page
+                page = bytearray()
+                page_address = srecord.address
+
+            if len(page) + len(srecord.data) >= page_size:
+                remaining = page_size - len(page)
+                page[len(page):] = srecord.data[:remaining]
+                yield page_address, page
+                page = bytearray(srecord.data[remaining:])
+                page_address = srecord.address + remaining
+            else:
+                page[len(page):] = srecord.data[:]
+
+    if page:
+        yield page_address, page
