@@ -14,11 +14,11 @@
 #-----------------------------------------------------------------------------
 
 import argparse
+import logging
 import os
 import sys
 
-from src.srec import *
-from src.srecord import *
+from srec2bin import *
 
 #-- definitions --------------------------------------------------------------
 

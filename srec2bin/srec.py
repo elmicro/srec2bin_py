@@ -1,7 +1,7 @@
 import logging
 from typing import Generator, Iterable, Tuple, Optional
 
-from srecord import SRecord, Purpose
+from .srecord import SRecord, Purpose
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)

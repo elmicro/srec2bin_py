@@ -7,9 +7,9 @@ import re
 
 from setuptools import find_packages, setup
 
-NAME = 'srec2bin_py'
+NAME = 'srec2bin'
 PACKAGES = find_packages(where='.')
-META_PATH = os.path.join('src', '__init__.py')
+META_PATH = os.path.join('srec2bin', '__init__.py')
 KEYWORDS = ['motorola', 'srecord', 'S3']
 CLASSIFIERS = [
     'Development Status :: 4 - Beta',
@@ -61,15 +61,16 @@ if __name__ == '__main__':
         license=find_meta('license'),
         url=find_meta('uri'),
         version=find_meta('version'),
-        # author=find_meta('author'),
-        # author_email=find_meta('email'),
-        # maintainer=find_meta('author'),
-        # maintainer_email=find_meta('email'),
+        author=find_meta('author'),
+        author_email=find_meta('email'),
+        maintainer=find_meta('author'),
+        maintainer_email=find_meta('email'),
         keywords=KEYWORDS,
         long_description=read('README.md'),
         packages=PACKAGES,
-        package_dir={'src': '.'},
-        package_data={'srec2bin': ['*.rst']},
+        # package_dir={'srec2bin': 'srec2bin'},
+        # package_data={'srec2bin': ['*.rst']},
+        scripts=['bin/srec2bin.py'],
         classifiers=CLASSIFIERS,
         install_requires=INSTALL_REQUIRES,
         python_requires='>=3.5',
