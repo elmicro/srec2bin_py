@@ -1,7 +1,7 @@
 # srec2bin_py
 ## Motorola S-Record to Binary File Converter (Python 3)
 
-by Oliver Thamm - [Elektronikladen Microcomputer](https://elmicro.com)<br>
+by Oliver Thamm - [ELMICRO Computer](https://elmicro.com)<br>
 https://github.com/elmicro/srec2bin_py
 
 ### Description
@@ -17,7 +17,7 @@ python srec2bin.py -h
 * warn if there are any data bytes below start / beyond end address specified by the user
 
 ### Copyright, License
-This software is Copyright (C)2017 by ELMICRO - https://elmicro.com<br>
+This software is Copyright (C)2017 by ELMICRO Computer - https://elmicro.com<br>
 and may be freely used, modified and distributed under the terms<br>
 of the MIT License - see accompanying LICENSE.md for details
 
