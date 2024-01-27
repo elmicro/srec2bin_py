@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------
 #
 #   srecord.py - Handling Module for Motorola S-Records
-#   by Oliver Thamm - Elektronikladen Microcomputer
+#   by Oliver Thamm - ELMICRO Computer
 #   https://github.com/elmicro/srec2bin_py
 #
 #   This software is Copyright (C)2017 by ELMICRO - https://elmicro.com
